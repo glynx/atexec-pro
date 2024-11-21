@@ -36,16 +36,19 @@ class TSCH_EXEC:
             self.__lmhash, self.__nthash = hashes.split(':')
         self.get_common_ps()
 
+    def __get_script(self, script_path):
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), script_path), 'r') as f:
+            return f.read()
+
     def check_file_size(self, data):
         # Check if the file size is greater than 1MB
         if len(data) > 1048576:
             logging.error('File size is too big, please consider using a smaller file')
             return False
         return True
-
+    
     def get_common_ps(self):
-        with open('./libs/powershells/common.ps1', 'r') as f:
-            self.__common_ps = f.read()
+        self.__common_ps = self.__get_script('powershells/common.ps1')
 
     def play(self, addr, interface):
         if interface == "ATSVC":
@@ -78,8 +81,7 @@ class TSCH_EXEC:
                 logging.info('When STATUS_OBJECT_NAME_NOT_FOUND is received, try running again. It might work')
 
     def execute_powershell(self, command):
-        with open('./libs/powershells/cmd.ps1', 'r') as f:
-            script = f.read()
+        script = self.__get_script('powershells/cmd.ps1')
         self.start_tsch(command, script)
 
     def execute_cmd_command(self, command):
@@ -90,13 +92,11 @@ class TSCH_EXEC:
             args = "/C %s" % (command)
         command = cmd + ' ' + args
         logging.debug('Executing cmd command: %s' % command)
-        with open('./libs/powershells/cmd.ps1', 'r') as f:
-            script = f.read()
+        script = self.__get_script('powershells/cmd.ps1')
         self.start_tsch(command, script)
 
     def execute_assembly(self, prog, args):
-        with open('./libs/powershells/net.ps1', 'r') as f:
-            script = f.read()
+        script = self.__get_script('powershells/net.ps1')
 
         if os.path.exists(prog) is False:
             logging.error('File %s not found!' % prog)
@@ -114,8 +114,8 @@ class TSCH_EXEC:
         self.start_tsch(file_data, script, randomkey=key)
 
     def upload_file(self, local, remote):
-        with open('./libs/powershells/upload.ps1', 'r') as f:
-            script = f.read()
+        script = self.__get_script('powershells/upload.ps1')
+
         if os.path.exists(local) is False:
             logging.error('Local File %s not found!' % local)
             return
@@ -135,8 +135,7 @@ class TSCH_EXEC:
         self.start_tsch(file_data, script)
 
     def download_file(self, remote, local):
-        with open('./libs/powershells/download.ps1', 'r') as f:
-            script = f.read()
+        script = self.__get_script('powershells/download.ps1')
 
         # if local is a directory, append the filename to the path
         if local[-1] == '/' or local[-1] == '\\':
